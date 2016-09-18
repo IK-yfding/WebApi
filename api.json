@@ -1,0 +1,10 @@
+<?php
+define("IKUAI8_API_PATH", dirname(__FILE__)."/");
+include_once(IKUAI8_API_PATH."libs/init.php");
+
+$model = trim($_GET["model"]);
+if(!$model) error(10016,"请指定API模块");
+//必须使用POST方式请求API
+//加入API处理文件
+Model::load($model, C("API_VERSION"));
+?>

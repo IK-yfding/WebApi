@@ -1,0 +1,7 @@
+<?php
+define("IKUAI8_API_PATH", dirname(__FILE__)."/");
+include_once(IKUAI8_API_PATH."libs/init.php");
+
+//加入API处理文件
+Model::load("upgrade", C("API_VERSION"));
+?>

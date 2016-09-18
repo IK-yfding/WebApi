@@ -1,0 +1,9 @@
+<?php
+define("IKUAI8_API_PATH", dirname(__FILE__)."/");
+include_once(IKUAI8_API_PATH."libs/init.php");
+
+if($_REQUEST["api_ver"]) $api_ver = filter($_POST["api_ver"]);
+if(!file_exists(IKUAI8_API_PATH."models/".$api_ver)) $api_ver = C("API_VERSION");
+//加入API处理文件
+Model::load("get_router_info", $api_ver);
+?>

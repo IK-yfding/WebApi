@@ -1,0 +1,53 @@
+<?php
+/**
+ * @desc 初始化路由器配置
+ */
+include_once("../init.php");
+if(empty($_POST)) error(10007, "请使用POST请求方式");
+/** 验证有效性 **/
+$params = array(
+		"partner" => array($_POST["partner"], 1),				//获取激活验证码
+		"gwid" => array($_POST["gwid"], 1),					//获取路由gwid参数
+		"mac" => array($_POST["mac"], 1),						//获取路由MAC地址
+		"version" => array($_POST["version"], 1),				//路由器版本
+		"timestamp" => array($_POST["timestamp"], 1),	//时间戳
+		"signature" => array($_POST["signature"], 1)		//签名
+);
+$post = chkParamVerify($params);							//遍历数组进行有效性验证
+//验证签名
+if(!Signature::chkSignVerify($post, $post["signature"])) error(10008, "签名错误");
+
+//传参
+$post_data = array(
+		"partner" => $partner_data["partner_id"],					//合作商号
+		"gwid" => $post["gwid"],											//路由GWID
+		"nonce" => Signature::createNonceStr(),						//随机码
+		"timestamp" => time(),												//时间戳
+		"api_ver" => C("API_VERSION"),									//当前API版本
+		"router_ver" => $post["version"]									//路由版本
+);
+
+//合作商信息
+$partner_data = getPartnerInfo($post["partner"], $db);
+//签名
+$post_data["signature"] = Signature::make($post_data, $partner_data["token"]);
+//API请求地址
+$api_url = C("API_PROTOCOL")."://".$partner_data["api_host"]."/server/api.json?model=update_tempate";
+$result = url_get_contents($api_url, $post_data, 1);
+if(!$result) error(10010, "API请求失败");
+
+//直接输出
+exit($result);
+/*
+{
+	“errcode”: 0,
+	“errmsg”:” success”,
+	“router_ver”:”ikuai8 2.0.1”,
+	“api_ver”:”2.0.1”,
+	“data”:{
+	“update”:1,
+	“temp_ver”:”2.0.1”
+	“url”:”http://www.ikuai8.com”
+}
+}*/
+?>

@@ -1,0 +1,40 @@
+<?php
+define("IKUAI8_API_PATH", dirname(__FILE__)."/");
+include_once(IKUAI8_API_PATH."libs/init.php");
+
+if(empty($_REQUEST['mac']))  {
+	$result = array('errcode' => 10007, 'errmsg' => '缺少参数mac');
+	exit($_GET['callback'] . '(' . json_encode($result) . ')');
+}
+
+//验证有效性
+$params = array(
+	"mac" => array($_REQUEST["mac"], 1)
+);
+//遍历数组进行有效性验证
+$post = chkParamVerify($params);
+//数据库
+$db = db();
+
+$sql = "select * from `ik_code_relation` where `mac`='".strtolower($post["mac"])."'";
+$rel_info = $db->fetch_array($db->query($sql));
+$result = array();
+if($rel_info["product_code"]) {
+	$code_sql = "select count(*) as `count` from `ik_product_code`";
+	$code_sql .= " where `partner_id`='".$rel_info["partner_id"]."'";
+	$code_sql .= " and `product_code`='".$rel_info["product_code"]."'";
+	//$code_sql .= " and `is_used`=1 and `is_active`=0";
+	$code_sql .= " and `is_used`=1";
+	$code_info = $db->fetch_array($db->query($code_sql));
+	$result = array(
+		"errcode"=>0,
+		"errmsg" => "success"
+	);
+	if($code_info["count"]) {
+		$result["code"] = $rel_info["product_code"];
+		exit($_GET['callback'] . '(' . json_encode($result) . ')');
+	}
+}
+$result = array('errcode' => 10000, 'errmsg' => '没有相关的激活码');
+exit($_GET['callback'] . '(' . json_encode($result) . ')');
+?>
